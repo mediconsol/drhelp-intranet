@@ -128,6 +128,16 @@ export default function Documents() {
     }
   };
 
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case "pdf": return FileText;
+      case "doc": return FileText;
+      case "image": return Image;
+      case "archive": return Archive;
+      default: return FileText;
+    }
+  };
+
   // Supabase 데이터와 로컬 데이터 합치기 (개발 단계)
   const allFiles = [...(documents || []), ...localFiles];
   const allItems = [...folders, ...allFiles];
@@ -271,13 +281,15 @@ export default function Documents() {
 
           {/* Files */}
           <div className="space-y-2">
-            {filteredItems.filter(item => item.type !== "folder").map((file: FileItem) => (
-              <Card key={file.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
-                      <file.icon className="h-5 w-5" />
-                    </div>
+            {filteredItems.filter(item => item.type !== "folder").map((file: any) => {
+              const IconComponent = file.icon || getFileIcon(file.type);
+              return (
+                <Card key={file.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
+                        <IconComponent className="h-5 w-5" />
+                      </div>
                     
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -321,19 +333,22 @@ export default function Documents() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         </TabsContent>
 
         <TabsContent value="recent" className="space-y-4">
           <div className="space-y-2">
-            {recentItems.map((file) => (
-              <Card key={file.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
-                      <file.icon className="h-5 w-5" />
-                    </div>
+            {recentItems.map((file) => {
+              const IconComponent = file.icon || getFileIcon(file.type);
+              return (
+                <Card key={file.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
+                        <IconComponent className="h-5 w-5" />
+                      </div>
                     <div className="flex-1">
                       <h4 className="font-medium">{file.name}</h4>
                       <p className="text-sm text-muted-foreground">
@@ -351,19 +366,22 @@ export default function Documents() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
 
         <TabsContent value="starred" className="space-y-4">
           <div className="space-y-2">
-            {starredItems.map((file) => (
-              <Card key={file.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
-                      <file.icon className="h-5 w-5" />
-                    </div>
+            {starredItems.map((file) => {
+              const IconComponent = file.icon || getFileIcon(file.type);
+              return (
+                <Card key={file.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getFileTypeColor(file.type)}`}>
+                        <IconComponent className="h-5 w-5" />
+                      </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium">{file.name}</h4>
@@ -384,7 +402,8 @@ export default function Documents() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
       </Tabs>
