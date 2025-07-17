@@ -137,7 +137,7 @@ export function useTickets() {
       let reporterId = null
 
       // 담당자 처리 - 간단한 버전
-      if (formData.assignee && formData.assignee !== "미지정") {
+      if (formData.assignee && formData.assignee !== "선택") {
         console.log('🔍 Looking for assignee:', formData.assignee)
 
         // 먼저 users 테이블에서 찾기

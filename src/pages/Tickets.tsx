@@ -249,7 +249,7 @@ export default function Tickets() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <User className="h-4 w-4" />
-                          <span>담당: {ticket.assignee?.name || '미지정'}</span>
+                          <span>담당: {ticket.assignee?.name || '선택'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />

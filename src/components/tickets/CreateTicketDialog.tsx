@@ -104,7 +104,7 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
-      assignee: formData.assignee || "미지정",
+      assignee: formData.assignee || "선택",
       reporter: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "현재사용자",
       due_date: formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       category: formData.category,
@@ -219,7 +219,7 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
                 <SelectValue placeholder={loadingUsers ? "사용자 목록 로딩중..." : "담당자 선택"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="미지정">미지정</SelectItem>
+                <SelectItem value="선택">선택</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.name}>
                     <div className="flex flex-col">
