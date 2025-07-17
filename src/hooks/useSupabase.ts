@@ -136,24 +136,8 @@ export function useTickets() {
       let assigneeId = null
       let reporterId = null
 
-      // 담당자 처리 - 간단한 버전
-      if (formData.assignee && formData.assignee !== "선택") {
-        console.log('🔍 Looking for assignee:', formData.assignee)
-
-        // 먼저 users 테이블에서 찾기
-        const { data: assigneeUsers, error: assigneeError } = await supabase
-          .from('users')
-          .select('id, name')
-          .eq('name', formData.assignee)
-
-        if (assigneeUsers && assigneeUsers.length > 0) {
-          assigneeId = assigneeUsers[0].id
-          console.log('✅ Found existing assignee with ID:', assigneeId)
-        } else {
-          console.log('⚠️ Assignee not found, setting to null (unassigned)')
-          assigneeId = null
-        }
-      }
+      // 담당자 처리 제거됨 - 항상 null
+      assigneeId = null
 
       // 보고자 처리 - 간단한 버전
       const reporterName = formData.reporter || (currentUser?.user_metadata?.full_name) || (currentUser?.email?.split('@')[0]) || '현재사용자'

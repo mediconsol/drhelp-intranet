@@ -59,7 +59,7 @@ export interface CreateTicketForm {
   title: string;
   description: string;
   priority: string;
-  assignee: string;  // UI에서는 문자열로 받음
+  assignee: string | null;  // 담당자 없음 (null)
   reporter: string;  // UI에서는 문자열로 받음
   due_date: string;
   category: string;
