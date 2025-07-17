@@ -139,44 +139,44 @@ export function useTickets() {
       // 담당자 처리 제거됨 - 항상 null
       assigneeId = null
 
-      // 보고자 처리 - 간단한 버전
-      const reporterName = formData.reporter || (currentUser?.user_metadata?.full_name) || (currentUser?.email?.split('@')[0]) || '현재사용자'
+      // 보고자 처리 - 현재 로그인한 사용자
+      if (!currentUser) {
+        throw new Error('로그인이 필요합니다.')
+      }
 
-      console.log('🔍 Looking for reporter by name:', reporterName)
-      const { data: reporterUsers, error: reporterError } = await supabase
+      console.log('🔍 Current user:', currentUser.email)
+
+      // 현재 사용자가 users 테이블에 있는지 확인
+      const { data: existingUser, error: userError } = await supabase
         .from('users')
-        .select('id, name')
-        .eq('name', reporterName)
+        .select('id, name, email')
+        .eq('email', currentUser.email)
+        .single()
 
-      if (reporterUsers && reporterUsers.length > 0) {
-        reporterId = reporterUsers[0].id
-        console.log('✅ Found existing reporter with ID:', reporterId)
+      if (existingUser) {
+        reporterId = existingUser.id
+        console.log('✅ Found existing user as reporter:', reporterId)
       } else {
-        // 기본 사용자 생성 (간단한 방식)
-        console.log('⚠️ Reporter not found, creating simple user')
-        const userEmail = currentUser?.email || `${reporterName.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
+        // 현재 사용자를 users 테이블에 생성
+        console.log('⚠️ Current user not in users table, creating...')
+        const userName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '사용자'
 
-        const { data: newReporter, error: createReporterError } = await supabase
+        const { data: newUser, error: createError } = await supabase
           .from('users')
           .insert([{
-            name: reporterName,
-            email: userEmail
+            name: userName,
+            email: currentUser.email
           }])
           .select('id')
           .single()
 
-        if (createReporterError || !newReporter?.id) {
-          console.error('❌ Failed to create reporter, using null')
-          reporterId = null
-        } else {
-          reporterId = newReporter.id
-          console.log('✅ Created new reporter with ID:', reporterId)
+        if (createError || !newUser?.id) {
+          console.error('❌ Failed to create user:', createError)
+          throw new Error('사용자 생성에 실패했습니다.')
         }
-      }
 
-      // reporter_id가 필수이므로 확인
-      if (!reporterId) {
-        throw new Error('보고자 ID를 찾을 수 없습니다.')
+        reporterId = newUser.id
+        console.log('✅ Created new user as reporter:', reporterId)
       }
 
 
