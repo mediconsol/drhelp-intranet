@@ -14,6 +14,7 @@ import Tickets from "./pages/Tickets";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
 import Announcements from "./pages/Announcements";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,11 @@ const App = () => (
             <Route path="/announcements" element={
               <ProtectedRoute>
                 <AppLayout><Announcements /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <AppLayout><UserManagement /></AppLayout>
               </ProtectedRoute>
             } />
 
