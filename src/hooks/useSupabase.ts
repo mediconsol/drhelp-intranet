@@ -126,28 +126,48 @@ export function useTickets() {
         // 먼저 users 테이블에서 찾기
         const { data: assigneeUsers, error: assigneeError } = await supabase
           .from('users')
-          .select('id')
+          .select('id, name')
           .eq('name', formData.assignee)
 
         if (assigneeError || !assigneeUsers || assigneeUsers.length === 0) {
           console.log('⚠️ Assignee not found, creating new user:', formData.assignee)
-          // 새 사용자 생성
-          const { data: newAssignee, error: createAssigneeError } = await supabase
-            .from('users')
-            .insert([{
-              name: formData.assignee,
-              email: `${formData.assignee.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
-            }])
-            .select('id')
-            .single()
 
-          if (createAssigneeError) {
-            console.error('❌ Failed to create assignee:', createAssigneeError)
-            // 담당자 생성 실패 시 null로 설정 (미지정)
+          try {
+            // 새 사용자 생성
+            const { data: newAssignee, error: createAssigneeError } = await supabase
+              .from('users')
+              .insert([{
+                name: formData.assignee,
+                email: `${formData.assignee.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
+              }])
+              .select('id, name')
+              .single()
+
+            if (createAssigneeError) {
+              console.error('❌ Failed to create assignee:', createAssigneeError)
+              console.log('🔄 Setting assignee to null (unassigned)')
+              assigneeId = null
+            } else {
+              assigneeId = newAssignee?.id
+              console.log('✅ Created new assignee with ID:', assigneeId)
+
+              // 생성 후 다시 확인
+              const { data: verifyAssignee, error: verifyError } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', assigneeId)
+                .single()
+
+              if (verifyError || !verifyAssignee) {
+                console.error('❌ Assignee verification failed, setting to null')
+                assigneeId = null
+              } else {
+                console.log('✅ Assignee verified successfully')
+              }
+            }
+          } catch (error) {
+            console.error('❌ Exception during assignee creation:', error)
             assigneeId = null
-          } else {
-            assigneeId = newAssignee?.id
-            console.log('✅ Created new assignee with ID:', assigneeId)
           }
         } else {
           assigneeId = assigneeUsers[0].id
@@ -161,29 +181,49 @@ export function useTickets() {
       console.log('🔍 Looking for reporter by name:', reporterName)
       const { data: reporterUsers, error: reporterError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, name')
         .eq('name', reporterName)
 
       if (reporterError || !reporterUsers || reporterUsers.length === 0) {
         console.log('⚠️ Reporter not found, creating new user:', reporterName)
-        // 새 사용자 생성
-        const userEmail = currentUser?.email || `${reporterName.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
 
-        const { data: newReporter, error: createReporterError } = await supabase
-          .from('users')
-          .insert([{
-            name: reporterName,
-            email: userEmail
-          }])
-          .select('id')
-          .single()
+        try {
+          // 새 사용자 생성
+          const userEmail = currentUser?.email || `${reporterName.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
 
-        if (createReporterError) {
-          console.error('❌ Failed to create reporter:', createReporterError)
-          throw new Error(`보고자 생성 실패: ${createReporterError.message}`)
-        } else {
-          reporterId = newReporter?.id
-          console.log('✅ Created new reporter with ID:', reporterId)
+          const { data: newReporter, error: createReporterError } = await supabase
+            .from('users')
+            .insert([{
+              name: reporterName,
+              email: userEmail
+            }])
+            .select('id, name')
+            .single()
+
+          if (createReporterError) {
+            console.error('❌ Failed to create reporter:', createReporterError)
+            throw new Error(`보고자 생성 실패: ${createReporterError.message}`)
+          } else {
+            reporterId = newReporter?.id
+            console.log('✅ Created new reporter with ID:', reporterId)
+
+            // 생성 후 다시 확인
+            const { data: verifyReporter, error: verifyError } = await supabase
+              .from('users')
+              .select('id')
+              .eq('id', reporterId)
+              .single()
+
+            if (verifyError || !verifyReporter) {
+              console.error('❌ Reporter verification failed')
+              throw new Error('보고자 생성 후 검증 실패')
+            } else {
+              console.log('✅ Reporter verified successfully')
+            }
+          }
+        } catch (error) {
+          console.error('❌ Exception during reporter creation:', error)
+          throw error
         }
       } else {
         reporterId = reporterUsers[0].id
@@ -193,6 +233,36 @@ export function useTickets() {
       // reporter_id가 필수이므로 확인
       if (!reporterId) {
         throw new Error('보고자 ID를 찾을 수 없습니다.')
+      }
+
+      // 티켓 생성 전 최종 사용자 ID 검증
+      console.log('🔍 Final verification of user IDs before ticket creation')
+
+      // 보고자 ID 검증
+      const { data: reporterCheck, error: reporterCheckError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', reporterId)
+        .single()
+
+      if (reporterCheckError || !reporterCheck) {
+        console.error('❌ Reporter ID verification failed:', reporterId)
+        throw new Error(`보고자 ID가 유효하지 않습니다: ${reporterId}`)
+      }
+
+      // 담당자 ID 검증 (null이 아닌 경우만)
+      if (assigneeId) {
+        const { data: assigneeCheck, error: assigneeCheckError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', assigneeId)
+          .single()
+
+        if (assigneeCheckError || !assigneeCheck) {
+          console.error('❌ Assignee ID verification failed:', assigneeId)
+          console.log('🔄 Setting assignee to null due to verification failure')
+          assigneeId = null
+        }
       }
 
       const ticketData = {
@@ -206,7 +276,7 @@ export function useTickets() {
         status: 'waiting'
       }
 
-      console.log('📋 Final ticket data to insert:', ticketData)
+      console.log('📋 Final ticket data to insert (after verification):', ticketData)
 
       const { data, error } = await supabase
         .from('tickets')
