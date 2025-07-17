@@ -112,6 +112,9 @@ export function useTickets() {
     try {
       console.log('🔄 Creating ticket with form data:', formData)
 
+      // 현재 로그인한 사용자 정보 가져오기
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+
       // 사용자 이름으로 ID 찾기 또는 새 사용자 생성
       let assigneeId = null
       let reporterId = null
@@ -119,60 +122,108 @@ export function useTickets() {
       // 담당자 처리
       if (formData.assignee && formData.assignee !== "미지정") {
         console.log('🔍 Looking for assignee:', formData.assignee)
-        const { data: assigneeUser, error: assigneeError } = await supabase
+
+        // 먼저 users 테이블에서 찾기
+        const { data: assigneeUsers, error: assigneeError } = await supabase
           .from('users')
           .select('id')
           .eq('name', formData.assignee)
-          .single()
 
-        if (assigneeError) {
-          console.log('⚠️ Assignee not found, creating new user:', assigneeError.message)
+        if (assigneeError || !assigneeUsers || assigneeUsers.length === 0) {
+          console.log('⚠️ Assignee not found, creating new user:', formData.assignee)
           // 새 사용자 생성
           const { data: newAssignee, error: createAssigneeError } = await supabase
             .from('users')
-            .insert([{ name: formData.assignee, email: `${formData.assignee.toLowerCase().replace(/\s+/g, '')}@example.com` }])
+            .insert([{
+              name: formData.assignee,
+              email: `${formData.assignee.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`,
+              auth_id: null // 아직 인증되지 않은 사용자
+            }])
             .select('id')
             .single()
 
           if (createAssigneeError) {
             console.error('❌ Failed to create assignee:', createAssigneeError)
+            // 담당자 생성 실패 시 null로 설정 (미지정)
+            assigneeId = null
           } else {
             assigneeId = newAssignee?.id
             console.log('✅ Created new assignee with ID:', assigneeId)
           }
         } else {
-          assigneeId = assigneeUser.id
+          assigneeId = assigneeUsers[0].id
           console.log('✅ Found existing assignee with ID:', assigneeId)
         }
       }
 
-      // 보고자 처리 (필수)
-      console.log('🔍 Looking for reporter:', formData.reporter)
-      const { data: reporterUser, error: reporterError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('name', formData.reporter)
-        .single()
+      // 보고자 처리 (현재 로그인한 사용자 우선 사용)
+      if (currentUser) {
+        console.log('🔍 Using current logged-in user as reporter:', currentUser.id)
 
-      if (reporterError) {
-        console.log('⚠️ Reporter not found, creating new user:', reporterError.message)
-        // 새 사용자 생성
-        const { data: newReporter, error: createReporterError } = await supabase
+        // 현재 사용자가 users 테이블에 있는지 확인
+        const { data: existingUser, error: userCheckError } = await supabase
           .from('users')
-          .insert([{ name: formData.reporter, email: `${formData.reporter.toLowerCase().replace(/\s+/g, '')}@example.com` }])
           .select('id')
+          .eq('auth_id', currentUser.id)
           .single()
 
-        if (createReporterError) {
-          console.error('❌ Failed to create reporter:', createReporterError)
-          throw new Error(`보고자 생성 실패: ${createReporterError.message}`)
+        if (userCheckError || !existingUser) {
+          console.log('⚠️ Current user not in users table, creating entry')
+          // 현재 사용자를 users 테이블에 추가
+          const { data: newUser, error: createUserError } = await supabase
+            .from('users')
+            .insert([{
+              name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '현재사용자',
+              email: currentUser.email || 'unknown@mediconsol.com',
+              auth_id: currentUser.id
+            }])
+            .select('id')
+            .single()
+
+          if (createUserError) {
+            console.error('❌ Failed to create current user entry:', createUserError)
+            // 폴백: 이름으로 찾기
+            reporterId = await this.handleReporterByName(formData.reporter)
+          } else {
+            reporterId = newUser?.id
+            console.log('✅ Created current user entry with ID:', reporterId)
+          }
         } else {
-          reporterId = newReporter?.id
-          console.log('✅ Created new reporter with ID:', reporterId)
+          reporterId = existingUser.id
+          console.log('✅ Found current user in users table with ID:', reporterId)
         }
       } else {
-        reporterId = reporterUser.id
-        console.log('✅ Found existing reporter with ID:', reporterId)
+        // 로그인하지 않은 경우 이름으로 처리
+        console.log('🔍 Looking for reporter by name:', formData.reporter)
+        const { data: reporterUsers, error: reporterError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('name', formData.reporter)
+
+        if (reporterError || !reporterUsers || reporterUsers.length === 0) {
+          console.log('⚠️ Reporter not found, creating new user:', formData.reporter)
+          // 새 사용자 생성
+          const { data: newReporter, error: createReporterError } = await supabase
+            .from('users')
+            .insert([{
+              name: formData.reporter,
+              email: `${formData.reporter.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`,
+              auth_id: null
+            }])
+            .select('id')
+            .single()
+
+          if (createReporterError) {
+            console.error('❌ Failed to create reporter:', createReporterError)
+            throw new Error(`보고자 생성 실패: ${createReporterError.message}`)
+          } else {
+            reporterId = newReporter?.id
+            console.log('✅ Created new reporter with ID:', reporterId)
+          }
+        } else {
+          reporterId = reporterUsers[0].id
+          console.log('✅ Found existing reporter with ID:', reporterId)
+        }
       }
 
       // reporter_id가 필수이므로 확인
