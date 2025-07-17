@@ -4,7 +4,7 @@
 
 ## 🌐 배포 정보
 
-- **Production**: https://drhelp-intranet.vercel.app
+- **Production**: https://drhelpintranet.vercel.app
 - **Development**: http://localhost:8080
 - **Lovable Project**: https://lovable.dev/projects/d2e7d463-70e0-424d-9cdf-b18ee229c357
 
