@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ReportGenerationDialog from "@/components/dashboard/ReportGenerationDialog";
 import { 
   Activity, 
   CheckCircle, 
@@ -125,10 +126,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">김안과21 인트라넷 현황</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            보고서 생성
-          </Button>
+          <ReportGenerationDialog />
           <Button size="sm">
             <Plus className="h-4 w-4 mr-2" />
             새 티켓 생성
