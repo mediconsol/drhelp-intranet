@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
-// import Tickets from "./pages/Tickets"; // 제거됨
+import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
 import Announcements from "./pages/Announcements";
@@ -43,7 +43,11 @@ const App = () => (
                 <AppLayout><Index /></AppLayout>
               </ProtectedRoute>
             } />
-            {/* 티켓 라우트 제거됨 */}
+            <Route path="/tasks" element={
+              <ProtectedRoute>
+                <AppLayout><Tasks /></AppLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/documents" element={
               <ProtectedRoute>
                 <AppLayout><Documents /></AppLayout>

@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportGenerationDialog from "@/components/dashboard/ReportGenerationDialog";
-// import CreateTicketDialog from "@/components/tickets/CreateTicketDialog"; // 제거됨
+import CreateTaskDialog from "@/components/tasks/CreateTaskDialog";
+import { Link } from "react-router-dom";
 import { 
   Activity, 
   CheckCircle, 
@@ -13,7 +14,8 @@ import {
   Users,
   TrendingUp,
   AlertCircle,
-  Plus
+  Plus,
+  CheckSquare
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -103,7 +105,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-2">
           <ReportGenerationDialog />
-          {/* CreateTicketDialog 제거됨 */}
+          <CreateTaskDialog />
         </div>
       </div>
 
@@ -187,8 +189,13 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* CreateTicketDialog 제거됨 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link to="/tasks">
+              <Button variant="outline" className="h-20 flex-col gap-2 w-full">
+                <CheckSquare className="h-6 w-6" />
+                <span className="text-sm">업무 관리</span>
+              </Button>
+            </Link>
             <Button variant="outline" className="h-20 flex-col gap-2">
               <FileText className="h-6 w-6" />
               <span className="text-sm">문서 업로드</span>

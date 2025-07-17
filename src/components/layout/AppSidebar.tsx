@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Home,
-  // Ticket, // 제거됨
+  CheckSquare,
   FolderOpen,
   Calendar,
   MessageSquare,
@@ -41,7 +41,7 @@ import {
 
 const mainNavItems = [
   { title: "대시보드", url: "/", icon: Home },
-  // { title: "업무 티켓", url: "/tickets", icon: Ticket }, // 제거됨
+  { title: "업무 관리", url: "/tasks", icon: CheckSquare },
   { title: "문서 저장소", url: "/documents", icon: FolderOpen },
   { title: "일정 관리", url: "/calendar", icon: Calendar },
   { title: "공지사항", url: "/announcements", icon: MessageSquare },
