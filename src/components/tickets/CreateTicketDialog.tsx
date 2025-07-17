@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // date-fns 제거됨 - JavaScript 내장 메서드 사용
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateTicketForm } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 interface CreateTicketDialogProps {
   onTicketCreate?: (ticket: CreateTicketForm) => void;
@@ -28,6 +29,8 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
     assignee: "",
     dueDate: undefined as Date | undefined,
   });
+  const [users, setUsers] = useState<Array<{ id: string; name: string; email: string }>>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -45,13 +48,45 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
     { value: "기타", label: "기타" },
   ];
 
-  const assignees = [
-    { value: "김개발", label: "김개발" },
-    { value: "이시스템", label: "이시스템" },
-    { value: "박디자인", label: "박디자인" },
-    { value: "정DBA", label: "정DBA" },
-    { value: "최기획", label: "최기획" },
-  ];
+  // 사용자 목록 가져오기
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      console.log('🔄 Fetching users for assignee dropdown...');
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching users:', error);
+        toast({
+          title: "오류",
+          description: "사용자 목록을 불러오는 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ Users fetched for dropdown:', data?.length || 0, 'users');
+      setUsers(data || []);
+    } catch (error) {
+      console.error('❌ Exception while fetching users:', error);
+      toast({
+        title: "오류",
+        description: "사용자 목록을 불러오는 중 예외가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 사용자 목록 가져오기
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,17 +201,38 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
           </div>
 
           <div className="space-y-2">
-            <Label>담당자 *</Label>
+            <div className="flex items-center justify-between">
+              <Label>담당자 *</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={fetchUsers}
+                disabled={loadingUsers}
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${loadingUsers ? 'animate-spin' : ''}`} />
+                새로고침
+              </Button>
+            </div>
             <Select value={formData.assignee} onValueChange={(value) => setFormData({ ...formData, assignee: value })}>
               <SelectTrigger>
-                <SelectValue placeholder="담당자 선택" />
+                <SelectValue placeholder={loadingUsers ? "사용자 목록 로딩중..." : "담당자 선택"} />
               </SelectTrigger>
               <SelectContent>
-                {assignees.map((assignee) => (
-                  <SelectItem key={assignee.value} value={assignee.value}>
-                    {assignee.label}
+                <SelectItem value="미지정">미지정</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.name}>
+                    <div className="flex flex-col">
+                      <span>{user.name}</span>
+                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                    </div>
                   </SelectItem>
                 ))}
+                {users.length === 0 && !loadingUsers && (
+                  <SelectItem value="" disabled>
+                    등록된 사용자가 없습니다
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
