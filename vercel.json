@@ -1,5 +1,4 @@
 {
-  "name": "drhelp-intranet",
   "version": 2,
   "builds": [
     {
@@ -15,9 +14,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key"
-  }
+  ]
 }
