@@ -70,6 +70,28 @@ export interface UploadDocumentForm {
   type: string;
   size: string;
   uploaded_by: string;
+  path?: string;
+}
+
+export interface FileItem {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  lastModified: string;
+  modifiedBy: string;
+  tags: string[];
+  isStarred: boolean;
+  icon: any; // Lucide icon component
+}
+
+export interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  file?: File;
+  uploadedBy?: string;
 }
 
 // 인증 관련 타입들

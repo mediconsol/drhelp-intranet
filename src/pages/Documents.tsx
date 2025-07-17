@@ -112,7 +112,7 @@ export default function Documents() {
         name: file.name,
         type: file.type,
         size: file.size,
-        uploaded_by: file.uploadedBy,
+        uploaded_by: file.uploadedBy || "현재사용자",
         path: `/documents/${file.name}`
       });
     });
@@ -129,10 +129,10 @@ export default function Documents() {
   };
 
   // Supabase 데이터와 로컬 데이터 합치기 (개발 단계)
-  const allFiles = [...documents, ...localFiles];
+  const allFiles = [...(documents || []), ...localFiles];
   const allItems = [...folders, ...allFiles];
   const filteredItems = allItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const recentItems = allFiles.slice(0, 3);
