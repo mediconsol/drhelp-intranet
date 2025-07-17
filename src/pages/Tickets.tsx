@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
 import { 
   Plus, 
   Filter, 
@@ -19,8 +20,7 @@ import {
 
 export default function Tickets() {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const tickets = [
+  const [tickets, setTickets] = useState([
     {
       id: "TK-001",
       title: "서버 점검 일정 조율 및 시스템 백업",
@@ -73,7 +73,11 @@ export default function Tickets() {
       comments: 8,
       category: "성능"
     }
-  ];
+  ]);
+
+  const handleTicketCreate = (newTicket: any) => {
+    setTickets(prev => [newTicket, ...prev]);
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -125,10 +129,7 @@ export default function Tickets() {
           <h1 className="text-3xl font-bold text-foreground">업무 티켓</h1>
           <p className="text-muted-foreground mt-1">업무 요청 및 진행 상황을 관리하세요</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          새 티켓 생성
-        </Button>
+        <CreateTicketDialog onTicketCreate={handleTicketCreate} />
       </div>
 
       {/* Search and Filter */}
