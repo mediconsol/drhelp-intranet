@@ -29,7 +29,7 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
     assignee: "",
     dueDate: undefined as Date | undefined,
   });
-  // 사용자 관련 상태 제거됨
+  const [currentUserInfo, setCurrentUserInfo] = useState<{ id: string; name: string; email: string } | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -47,11 +47,59 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
     { value: "기타", label: "기타" },
   ];
 
-  // 사용자 목록 관련 함수 제거됨
+  // 현재 사용자 정보 가져오기
+  const fetchCurrentUserInfo = async () => {
+    try {
+      if (!user?.email) return;
+
+      console.log('🔍 Fetching current user info for:', user.email);
+
+      // users 테이블에서 현재 사용자 찾기
+      const { data: existingUser, error } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('email', user.email)
+        .single();
+
+      if (existingUser) {
+        setCurrentUserInfo(existingUser);
+        console.log('✅ Found current user info:', existingUser);
+      } else {
+        // 사용자가 없으면 기본 정보 표시
+        const defaultInfo = {
+          id: 'pending',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '현재사용자',
+          email: user.email
+        };
+        setCurrentUserInfo(defaultInfo);
+        console.log('⚠️ User not in database, showing default info:', defaultInfo);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching current user info:', error);
+      // 오류 시에도 기본 정보 표시
+      if (user?.email) {
+        setCurrentUserInfo({
+          id: 'error',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || '현재사용자',
+          email: user.email
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchCurrentUserInfo();
+    }
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    console.log('🔄 Form submission started');
+    console.log('📋 Current user info:', currentUserInfo);
+    console.log('📋 Auth user:', user);
+
     if (!formData.title || !formData.description || !formData.priority || !formData.category) {
       toast({
         title: "필수 항목을 입력해주세요",
@@ -161,7 +209,39 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
             </div>
           </div>
 
-          {/* 담당자 선택 제거됨 */}
+          {/* 보고자 정보 표시 */}
+          <div className="space-y-2">
+            <Label>보고자 정보</Label>
+            <div className="p-3 bg-muted rounded-md border">
+              {currentUserInfo ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{currentUserInfo.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ID: {currentUserInfo.id}
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {currentUserInfo.email}
+                  </div>
+                  {currentUserInfo.id === 'pending' && (
+                    <div className="text-xs text-amber-600 mt-1">
+                      ⚠️ 사용자 정보가 데이터베이스에 없습니다. 티켓 생성 시 자동으로 생성됩니다.
+                    </div>
+                  )}
+                  {currentUserInfo.id === 'error' && (
+                    <div className="text-xs text-red-600 mt-1">
+                      ❌ 사용자 정보를 불러오는 중 오류가 발생했습니다.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  사용자 정보를 불러오는 중...
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="space-y-2">
             <Label>마감일</Label>
