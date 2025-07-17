@@ -8,23 +8,7 @@ export interface User {
   updated_at?: string;
 }
 
-export interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  assignee_id: string | null;
-  reporter_id: string | null;
-  category: string;
-  due_date: string;
-  created_at: string;
-  updated_at: string;
-
-  // 조인된 사용자 정보 (선택적)
-  assignee?: User;
-  reporter?: User;
-}
+// Ticket 인터페이스 제거됨
 
 export interface Document {
   id: string;
@@ -54,16 +38,7 @@ export interface Announcement {
   is_pinned: boolean;
 }
 
-// 폼에서 사용하는 타입들
-export interface CreateTicketForm {
-  title: string;
-  description: string;
-  priority: string;
-  assignee: string | null;  // 담당자 없음 (null)
-  reporter: string;  // UI에서는 문자열로 받음
-  due_date: string;
-  category: string;
-}
+// CreateTicketForm 인터페이스 제거됨
 
 export interface UploadDocumentForm {
   name: string;
