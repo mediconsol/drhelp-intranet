@@ -7,14 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+// date-fns 제거됨 - JavaScript 내장 메서드 사용
 import { CalendarIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { CreateTicketForm } from "@/types";
 
 interface CreateTicketDialogProps {
-  onTicketCreate?: (ticket: any) => void;
+  onTicketCreate?: (ticket: CreateTicketForm) => void;
 }
 
 export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialogProps) {
@@ -28,11 +29,12 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
     dueDate: undefined as Date | undefined,
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const priorities = [
-    { value: "높음", label: "높음" },
-    { value: "중간", label: "중간" },
-    { value: "낮음", label: "낮음" },
+    { value: "high", label: "높음" },
+    { value: "medium", label: "중간" },
+    { value: "low", label: "낮음" },
   ];
 
   const categories = [
@@ -63,17 +65,13 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
       return;
     }
 
-    const newTicket = {
-      id: `TK-${String(Date.now()).slice(-3).padStart(3, '0')}`,
+    const newTicket: CreateTicketForm = {
       title: formData.title,
       description: formData.description,
-      status: "대기",
       priority: formData.priority,
-      assignee: formData.assignee,
-      reporter: "현재사용자", // 실제로는 로그인된 사용자
-      createdAt: format(new Date(), "yyyy-MM-dd"),
-      dueDate: formData.dueDate ? format(formData.dueDate, "yyyy-MM-dd") : format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
-      comments: 0,
+      assignee: formData.assignee || "미지정",
+      reporter: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "현재사용자",
+      due_date: formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       category: formData.category,
     };
 
@@ -196,7 +194,11 @@ export default function CreateTicketDialog({ onTicketCreate }: CreateTicketDialo
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {formData.dueDate ? (
-                    format(formData.dueDate, "PPP", { locale: ko })
+                    formData.dueDate.toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
                   ) : (
                     <span>마감일을 선택하세요 (선택사항)</span>
                   )}

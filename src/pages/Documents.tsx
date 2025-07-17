@@ -21,11 +21,17 @@ import {
   MoreHorizontal
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileItem, UploadedFile } from "@/types";
+import { useDocuments } from "@/hooks/useSupabase";
+import { Loader2 } from "lucide-react";
 
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-  const [files, setFiles] = useState([
+  const { documents, loading, uploadDocument, deleteDocument } = useDocuments();
+
+  // 기존 하드코딩된 데이터는 제거하고 Supabase에서 가져온 데이터 사용
+  const [localFiles] = useState([
     {
       id: "f1",
       name: "2024년 상반기 운영 보고서.pdf",
@@ -99,8 +105,17 @@ export default function Documents() {
     }
   ];
 
-  const handleFileUpload = (newFiles: any[]) => {
-    setFiles(prev => [...newFiles, ...prev]);
+  const handleFileUpload = (newFiles: UploadedFile[]) => {
+    // Supabase 훅의 uploadDocument 함수 사용
+    newFiles.forEach(file => {
+      uploadDocument({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        uploaded_by: file.uploadedBy,
+        path: `/documents/${file.name}`
+      });
+    });
   };
 
   const getFileTypeColor = (type: string) => {
@@ -113,13 +128,24 @@ export default function Documents() {
     }
   };
 
-  const allItems = [...folders, ...files];
+  // Supabase 데이터와 로컬 데이터 합치기 (개발 단계)
+  const allFiles = [...documents, ...localFiles];
+  const allItems = [...folders, ...allFiles];
   const filteredItems = allItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const recentItems = files.slice(0, 3);
-  const starredItems = files.filter(file => file.isStarred);
+  const recentItems = allFiles.slice(0, 3);
+  const starredItems = allFiles.filter(file => file.isStarred);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">문서를 불러오는 중...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -245,7 +271,7 @@ export default function Documents() {
 
           {/* Files */}
           <div className="space-y-2">
-            {filteredItems.filter(item => item.type !== "folder").map((file: any) => (
+            {filteredItems.filter(item => item.type !== "folder").map((file: FileItem) => (
               <Card key={file.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-4">
@@ -256,9 +282,9 @@ export default function Documents() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium">{file.name}</h4>
-                        {file.isStarred && <Star className="h-4 w-4 text-warning fill-current" />}
+                        {(file.is_starred || file.isStarred) && <Star className="h-4 w-4 text-warning fill-current" />}
                         <div className="flex gap-1">
-                          {file.tags.map((tag: string) => (
+                          {(file.tags || []).map((tag: string) => (
                             <Badge key={tag} variant="secondary" className="text-xs">
                               {tag}
                             </Badge>
@@ -269,11 +295,11 @@ export default function Documents() {
                         <span>{file.size}</span>
                         <span className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          {file.modifiedBy}
+                          {file.modified_by || file.modifiedBy || file.uploaded_by || file.uploadedBy || '미지정'}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {file.lastModified}
+                          {file.last_modified || file.lastModified || file.created_at || file.uploadedAt}
                         </span>
                       </div>
                     </div>

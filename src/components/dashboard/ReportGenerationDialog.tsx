@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+// date-fns 제거됨 - JavaScript 내장 메서드 사용
 import { CalendarIcon, FileText, Download, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -75,7 +74,7 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
       const reportData = {
         title: formData.title,
         type: formData.type,
-        period: `${format(formData.startDate, "yyyy-MM-dd")} ~ ${format(formData.endDate, "yyyy-MM-dd")}`,
+        period: `${formData.startDate.toISOString().split('T')[0]} ~ ${formData.endDate.toISOString().split('T')[0]}`,
         includes: {
           tickets: formData.includeTickets,
           documents: formData.includeDocuments,
@@ -180,7 +179,11 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.startDate ? (
-                      format(formData.startDate, "PPP", { locale: ko })
+                      formData.startDate.toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
                     ) : (
                       <span>시작일 선택</span>
                     )}
@@ -211,7 +214,11 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.endDate ? (
-                      format(formData.endDate, "PPP", { locale: ko })
+                      formData.endDate.toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
                     ) : (
                       <span>종료일 선택</span>
                     )}

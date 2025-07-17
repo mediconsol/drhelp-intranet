@@ -20,9 +20,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { UploadedFile } from "@/types";
 
 interface FileUploadDialogProps {
-  onFileUpload?: (files: any[]) => void;
+  onFileUpload?: (files: UploadedFile[]) => void;
 }
 
 export default function FileUploadDialog({ onFileUpload }: FileUploadDialogProps) {

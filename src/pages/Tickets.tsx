@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
-import { 
-  Plus, 
-  Filter, 
+import { useTickets } from "@/hooks/useSupabase";
+import {
+  Plus,
+  Filter,
   Search,
   Activity,
   Clock,
@@ -15,12 +16,36 @@ import {
   AlertCircle,
   User,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
+import { Ticket, CreateTicketForm } from "@/types";
 
 export default function Tickets() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [tickets, setTickets] = useState([
+  const { tickets, loading, createTicket, updateTicket, deleteTicket } = useTickets();
+
+  // 우선순위 및 상태 변환 함수
+  const getPriorityLabel = (priority: string) => {
+    const priorityMap: { [key: string]: string } = {
+      'high': '높음',
+      'medium': '중간',
+      'low': '낮음'
+    };
+    return priorityMap[priority] || priority;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'waiting': '대기',
+      'in_progress': '진행중',
+      'completed': '완료'
+    };
+    return statusMap[status] || status;
+  };
+
+  // 기존 하드코딩된 데이터는 제거하고 Supabase에서 가져온 데이터 사용
+  const [localTickets] = useState([
     {
       id: "TK-001",
       title: "서버 점검 일정 조율 및 시스템 백업",
@@ -75,40 +100,42 @@ export default function Tickets() {
     }
   ]);
 
-  const handleTicketCreate = (newTicket: any) => {
-    setTickets(prev => [newTicket, ...prev]);
+  const handleTicketCreate = (newTicket: CreateTicketForm) => {
+    // Supabase 훅의 createTicket 함수 사용
+    createTicket(newTicket);
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "높음": return "bg-destructive text-destructive-foreground";
-      case "중간": return "bg-warning text-warning-foreground";
-      case "낮음": return "bg-success text-success-foreground";
+      case "high": return "bg-destructive text-destructive-foreground";
+      case "medium": return "bg-warning text-warning-foreground";
+      case "low": return "bg-success text-success-foreground";
       default: return "bg-muted text-muted-foreground";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "진행중": return "bg-primary text-primary-foreground";
-      case "검토중": return "bg-warning text-warning-foreground";
-      case "대기": return "bg-muted text-muted-foreground";
-      case "완료": return "bg-success text-success-foreground";
+      case "in_progress": return "bg-primary text-primary-foreground";
+      case "waiting": return "bg-muted text-muted-foreground";
+      case "completed": return "bg-success text-success-foreground";
       default: return "bg-muted text-muted-foreground";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "진행중": return Activity;
-      case "검토중": return Clock;
-      case "대기": return AlertCircle;
-      case "완료": return CheckCircle;
+      case "in_progress": return Activity;
+      case "waiting": return Clock;
+      case "completed": return CheckCircle;
       default: return Activity;
     }
   };
 
-  const filteredTickets = tickets.filter(ticket =>
+  // Supabase 데이터와 로컬 데이터 합치기 (개발 단계)
+  const allTickets = [...tickets, ...localTickets];
+
+  const filteredTickets = allTickets.filter(ticket =>
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ticket.assignee.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ticket.id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -120,6 +147,15 @@ export default function Tickets() {
     completed: filteredTickets.filter(t => t.status === "완료"),
     overdue: filteredTickets.filter(t => new Date(t.dueDate) < new Date() && t.status !== "완료")
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">티켓을 불러오는 중...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -191,11 +227,11 @@ export default function Tickets() {
                             {ticket.id}
                           </Badge>
                           <Badge className={getPriorityColor(ticket.priority)}>
-                            {ticket.priority}
+                            {getPriorityLabel(ticket.priority)}
                           </Badge>
                           <Badge variant="outline" className={getStatusColor(ticket.status)}>
                             <StatusIcon className="h-3 w-3 mr-1" />
-                            {ticket.status}
+                            {getStatusLabel(ticket.status)}
                           </Badge>
                           <Badge variant="secondary">
                             {ticket.category}
@@ -213,19 +249,19 @@ export default function Tickets() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <User className="h-4 w-4" />
-                          <span>담당: {ticket.assignee}</span>
+                          <span>담당: {ticket.assignee?.name || '미지정'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>마감: {ticket.dueDate}</span>
+                          <span>마감: {ticket.due_date}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageSquare className="h-4 w-4" />
-                          <span>{ticket.comments}개 댓글</span>
+                          <span>0개 댓글</span>
                         </div>
                       </div>
                       <div className="text-xs">
-                        작성: {ticket.reporter} • {ticket.createdAt}
+                        작성: {ticket.reporter?.name || '미지정'} • {new Date(ticket.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </CardContent>

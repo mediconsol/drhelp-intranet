@@ -2,9 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
 import Tickets from "./pages/Tickets";
 import Documents from "./pages/Documents";
 import Calendar from "./pages/Calendar";
@@ -19,15 +24,49 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/tickets" element={<AppLayout><Tickets /></AppLayout>} />
-          <Route path="/documents" element={<AppLayout><Documents /></AppLayout>} />
-          <Route path="/calendar" element={<AppLayout><Calendar /></AppLayout>} />
-          <Route path="/announcements" element={<AppLayout><Announcements /></AppLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* 인증 관련 라우트 (로그인하지 않은 사용자용) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* 보호된 라우트 (로그인한 사용자용) */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <AppLayout><Index /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <AppLayout><Index /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/tickets" element={
+              <ProtectedRoute>
+                <AppLayout><Tickets /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <AppLayout><Documents /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <AppLayout><Calendar /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/announcements" element={
+              <ProtectedRoute>
+                <AppLayout><Announcements /></AppLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* 404 페이지 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

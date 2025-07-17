@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Ticket, 
-  FolderOpen, 
-  Calendar, 
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Home,
+  Ticket,
+  FolderOpen,
+  Calendar,
   MessageSquare,
   Settings,
   Bell,
   Search,
   User,
-  Building2
+  Building2,
+  LogOut,
+  UserCircle
 } from "lucide-react";
 
 import {
@@ -24,7 +27,17 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const mainNavItems = [
   { title: "대시보드", url: "/", icon: Home },
@@ -45,6 +58,7 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
+  const { user, signOut } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/";
@@ -128,10 +142,63 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Collapse Trigger */}
-      <div className="p-4 border-t border-sidebar-border">
-        <SidebarTrigger className="w-full flex items-center justify-center p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors" />
-      </div>
+      {/* User Info and Logout */}
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <UserCircle className="h-8 w-8" />
+                  {!collapsed && (
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {user?.user_metadata?.full_name || user?.email?.split('@')[0] || '사용자'}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {user?.email}
+                      </span>
+                    </div>
+                  )}
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <UserCircle className="h-8 w-8" />
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {user?.user_metadata?.full_name || user?.email?.split('@')[0] || '사용자'}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {user?.email}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        {/* Collapse Trigger */}
+        <div className="p-2">
+          <SidebarTrigger className="w-full flex items-center justify-center p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary hover:text-sidebar-primary-foreground transition-colors" />
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
