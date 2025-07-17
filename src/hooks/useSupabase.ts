@@ -134,35 +134,48 @@ export function useTickets() {
 
           try {
             // 새 사용자 생성
+            console.log('🔄 Attempting to create assignee user...')
             const { data: newAssignee, error: createAssigneeError } = await supabase
               .from('users')
               .insert([{
                 name: formData.assignee,
                 email: `${formData.assignee.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
               }])
-              .select('id, name')
+              .select('id, name, email')
               .single()
+
+            console.log('📋 Create assignee result:', { data: newAssignee, error: createAssigneeError })
 
             if (createAssigneeError) {
               console.error('❌ Failed to create assignee:', createAssigneeError)
               console.log('🔄 Setting assignee to null (unassigned)')
               assigneeId = null
+            } else if (!newAssignee?.id) {
+              console.error('❌ Assignee created but no ID returned')
+              assigneeId = null
             } else {
-              assigneeId = newAssignee?.id
+              assigneeId = newAssignee.id
               console.log('✅ Created new assignee with ID:', assigneeId)
 
+              // 잠시 대기 후 검증 (DB 동기화 시간 확보)
+              await new Promise(resolve => setTimeout(resolve, 500))
+
               // 생성 후 다시 확인
+              console.log('🔍 Verifying created assignee...')
               const { data: verifyAssignee, error: verifyError } = await supabase
                 .from('users')
-                .select('id')
+                .select('id, name')
                 .eq('id', assigneeId)
                 .single()
 
+              console.log('📋 Verify assignee result:', { data: verifyAssignee, error: verifyError })
+
               if (verifyError || !verifyAssignee) {
                 console.error('❌ Assignee verification failed, setting to null')
+                console.error('❌ Verification error details:', verifyError)
                 assigneeId = null
               } else {
-                console.log('✅ Assignee verified successfully')
+                console.log('✅ Assignee verified successfully:', verifyAssignee)
               }
             }
           } catch (error) {
@@ -191,34 +204,47 @@ export function useTickets() {
           // 새 사용자 생성
           const userEmail = currentUser?.email || `${reporterName.toLowerCase().replace(/\s+/g, '')}@mediconsol.com`
 
+          console.log('🔄 Attempting to create reporter user...')
           const { data: newReporter, error: createReporterError } = await supabase
             .from('users')
             .insert([{
               name: reporterName,
               email: userEmail
             }])
-            .select('id, name')
+            .select('id, name, email')
             .single()
+
+          console.log('📋 Create reporter result:', { data: newReporter, error: createReporterError })
 
           if (createReporterError) {
             console.error('❌ Failed to create reporter:', createReporterError)
             throw new Error(`보고자 생성 실패: ${createReporterError.message}`)
+          } else if (!newReporter?.id) {
+            console.error('❌ Reporter created but no ID returned')
+            throw new Error('보고자 생성 실패: ID가 반환되지 않음')
           } else {
-            reporterId = newReporter?.id
+            reporterId = newReporter.id
             console.log('✅ Created new reporter with ID:', reporterId)
 
+            // 잠시 대기 후 검증 (DB 동기화 시간 확보)
+            await new Promise(resolve => setTimeout(resolve, 500))
+
             // 생성 후 다시 확인
+            console.log('🔍 Verifying created reporter...')
             const { data: verifyReporter, error: verifyError } = await supabase
               .from('users')
-              .select('id')
+              .select('id, name')
               .eq('id', reporterId)
               .single()
 
+            console.log('📋 Verify reporter result:', { data: verifyReporter, error: verifyError })
+
             if (verifyError || !verifyReporter) {
               console.error('❌ Reporter verification failed')
+              console.error('❌ Verification error details:', verifyError)
               throw new Error('보고자 생성 후 검증 실패')
             } else {
-              console.log('✅ Reporter verified successfully')
+              console.log('✅ Reporter verified successfully:', verifyReporter)
             }
           }
         } catch (error) {
@@ -237,32 +263,50 @@ export function useTickets() {
 
       // 티켓 생성 전 최종 사용자 ID 검증
       console.log('🔍 Final verification of user IDs before ticket creation')
+      console.log('📋 IDs to verify:', { reporterId, assigneeId })
+
+      // 잠시 대기 (DB 동기화 시간 확보)
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // 보고자 ID 검증
+      console.log('🔍 Verifying reporter ID:', reporterId)
       const { data: reporterCheck, error: reporterCheckError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, name')
         .eq('id', reporterId)
         .single()
 
+      console.log('📋 Reporter verification result:', { data: reporterCheck, error: reporterCheckError })
+
       if (reporterCheckError || !reporterCheck) {
         console.error('❌ Reporter ID verification failed:', reporterId)
+        console.error('❌ Reporter check error details:', reporterCheckError)
         throw new Error(`보고자 ID가 유효하지 않습니다: ${reporterId}`)
+      } else {
+        console.log('✅ Reporter ID verified successfully:', reporterCheck)
       }
 
       // 담당자 ID 검증 (null이 아닌 경우만)
       if (assigneeId) {
+        console.log('🔍 Verifying assignee ID:', assigneeId)
         const { data: assigneeCheck, error: assigneeCheckError } = await supabase
           .from('users')
-          .select('id')
+          .select('id, name')
           .eq('id', assigneeId)
           .single()
 
+        console.log('📋 Assignee verification result:', { data: assigneeCheck, error: assigneeCheckError })
+
         if (assigneeCheckError || !assigneeCheck) {
           console.error('❌ Assignee ID verification failed:', assigneeId)
+          console.error('❌ Assignee check error details:', assigneeCheckError)
           console.log('🔄 Setting assignee to null due to verification failure')
           assigneeId = null
+        } else {
+          console.log('✅ Assignee ID verified successfully:', assigneeCheck)
         }
+      } else {
+        console.log('ℹ️ No assignee to verify (null)')
       }
 
       const ticketData = {
