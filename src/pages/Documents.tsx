@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import FileUploadDialog from "@/components/documents/FileUploadDialog";
 import { 
   Upload, 
   Search,
@@ -24,35 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-
-  const folders = [
-    {
-      id: "1",
-      name: "회의 자료",
-      type: "folder",
-      itemCount: 24,
-      lastModified: "2024-07-16",
-      icon: FolderOpen
-    },
-    {
-      id: "2", 
-      name: "정책 문서",
-      type: "folder",
-      itemCount: 12,
-      lastModified: "2024-07-15",
-      icon: FolderOpen
-    },
-    {
-      id: "3",
-      name: "교육 자료",
-      type: "folder", 
-      itemCount: 35,
-      lastModified: "2024-07-14",
-      icon: FolderOpen
-    }
-  ];
-
-  const files = [
+  const [files, setFiles] = useState([
     {
       id: "f1",
       name: "2024년 상반기 운영 보고서.pdf",
@@ -97,7 +70,38 @@ export default function Documents() {
       isStarred: false,
       icon: Archive
     }
+  ]);
+
+  const folders = [
+    {
+      id: "1",
+      name: "회의 자료",
+      type: "folder",
+      itemCount: 24,
+      lastModified: "2024-07-16",
+      icon: FolderOpen
+    },
+    {
+      id: "2", 
+      name: "정책 문서",
+      type: "folder",
+      itemCount: 12,
+      lastModified: "2024-07-15",
+      icon: FolderOpen
+    },
+    {
+      id: "3",
+      name: "교육 자료",
+      type: "folder", 
+      itemCount: 35,
+      lastModified: "2024-07-14",
+      icon: FolderOpen
+    }
   ];
+
+  const handleFileUpload = (newFiles: any[]) => {
+    setFiles(prev => [...newFiles, ...prev]);
+  };
 
   const getFileTypeColor = (type: string) => {
     switch (type) {
@@ -130,10 +134,7 @@ export default function Documents() {
             <FolderOpen className="h-4 w-4 mr-2" />
             새 폴더
           </Button>
-          <Button>
-            <Upload className="h-4 w-4 mr-2" />
-            파일 업로드
-          </Button>
+          <FileUploadDialog onFileUpload={handleFileUpload} />
         </div>
       </div>
 
