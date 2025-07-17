@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportGenerationDialog from "@/components/dashboard/ReportGenerationDialog";
-import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
+// import CreateTicketDialog from "@/components/tickets/CreateTicketDialog"; // 제거됨
 import { 
   Activity, 
   CheckCircle, 
@@ -52,32 +52,7 @@ export default function Dashboard() {
     }
   ];
 
-  const recentTickets = [
-    {
-      id: "TK-001",
-      title: "서버 점검 일정 조율",
-      status: "진행중",
-      priority: "높음",
-      assignee: "김개발",
-      dueDate: "2024-07-17"
-    },
-    {
-      id: "TK-002", 
-      title: "환자 데이터 백업 시스템 구축",
-      status: "검토중",
-      priority: "중간",
-      assignee: "이시스템",
-      dueDate: "2024-07-20"
-    },
-    {
-      id: "TK-003",
-      title: "모바일 앱 UI 개선",
-      status: "대기",
-      priority: "낮음",
-      assignee: "박디자인",
-      dueDate: "2024-07-25"
-    }
-  ];
+  // recentTickets 제거됨
 
   const upcomingEvents = [
     {
@@ -128,7 +103,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-2">
           <ReportGenerationDialog />
-          <CreateTicketDialog />
+          {/* CreateTicketDialog 제거됨 */}
         </div>
       </div>
 
@@ -160,46 +135,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Tickets */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              최근 티켓
-            </CardTitle>
-            <CardDescription>
-              최근 업데이트된 업무 티켓들
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentTickets.map((ticket) => (
-                <div key={ticket.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Badge variant="outline" className="text-xs">
-                        {ticket.id}
-                      </Badge>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
-                      <Badge variant="outline" className={getStatusColor(ticket.status)}>
-                        {ticket.status}
-                      </Badge>
-                    </div>
-                    <h4 className="font-medium text-foreground">{ticket.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      담당자: {ticket.assignee} • 마감일: {ticket.dueDate}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    상세보기
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Recent Tickets 섹션 제거됨 */}
 
         {/* Today's Schedule */}
         <Card>
@@ -251,8 +187,8 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <CreateTicketDialog />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* CreateTicketDialog 제거됨 */}
             <Button variant="outline" className="h-20 flex-col gap-2">
               <FileText className="h-6 w-6" />
               <span className="text-sm">문서 업로드</span>

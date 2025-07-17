@@ -24,7 +24,7 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
     type: "",
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
-    includeTickets: true,
+    // includeTickets: true, // 제거됨
     includeDocuments: false,
     includeCalendar: false,
     includeAnnouncements: false,
@@ -76,7 +76,7 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
         type: formData.type,
         period: `${formData.startDate.toISOString().split('T')[0]} ~ ${formData.endDate.toISOString().split('T')[0]}`,
         includes: {
-          tickets: formData.includeTickets,
+          // tickets: formData.includeTickets, // 제거됨
           documents: formData.includeDocuments,
           calendar: formData.includeCalendar,
           announcements: formData.includeAnnouncements,
@@ -98,7 +98,7 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
         type: "",
         startDate: undefined,
         endDate: undefined,
-        includeTickets: true,
+        // includeTickets: true, // 제거됨
         includeDocuments: false,
         includeCalendar: false,
         includeAnnouncements: false,
@@ -241,14 +241,7 @@ export default function ReportGenerationDialog({ trigger }: ReportGenerationDial
           <div className="space-y-3">
             <Label>포함할 데이터</Label>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="tickets" 
-                  checked={formData.includeTickets}
-                  onCheckedChange={(checked) => setFormData({ ...formData, includeTickets: !!checked })}
-                />
-                <Label htmlFor="tickets" className="text-sm font-normal">업무 티켓 현황</Label>
-              </div>
+              {/* 티켓 체크박스 제거됨 */}
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="documents" 
