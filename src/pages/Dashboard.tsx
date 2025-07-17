@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportGenerationDialog from "@/components/dashboard/ReportGenerationDialog";
+import CreateTicketDialog from "@/components/tickets/CreateTicketDialog";
 import { 
   Activity, 
   CheckCircle, 
@@ -127,10 +128,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-2">
           <ReportGenerationDialog />
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            새 티켓 생성
-          </Button>
+          <CreateTicketDialog />
         </div>
       </div>
 
@@ -254,10 +252,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Activity className="h-6 w-6" />
-              <span className="text-sm">새 티켓</span>
-            </Button>
+            <CreateTicketDialog />
             <Button variant="outline" className="h-20 flex-col gap-2">
               <FileText className="h-6 w-6" />
               <span className="text-sm">문서 업로드</span>
